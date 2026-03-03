@@ -2,6 +2,9 @@ import 'package:aporia/features/settings/presentation/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/widgets/chat_bottom_sheet.dart';
+import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
+import 'package:dataflow/dataflow.dart';
+import 'dart:io';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,10 +56,78 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            _buildAttachmentList(),
             _buildBottomInputArea(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAttachmentList() {
+    return DataSync<ChatStore>(
+      actions: {AddAttachmentAction, RemoveAttachmentAction},
+      builder: (context, store, _) {
+        if (store.attachments.isEmpty) return const SizedBox.shrink();
+        return Container(
+          height: 90,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: store.attachments.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final attachment = store.attachments[index];
+              return Stack(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceGray,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: attachment.type == 'file'
+                          ? const Center(
+                              child: Icon(
+                                Icons.insert_drive_file,
+                                color: Colors.white70,
+                              ),
+                            )
+                          : Image.file(
+                              File(attachment.path),
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                  ),
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: GestureDetector(
+                      onTap: () => RemoveAttachmentAction(index),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

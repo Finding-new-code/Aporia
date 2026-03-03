@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
 
 class ChatBottomSheet extends StatelessWidget {
   const ChatBottomSheet({super.key});
@@ -28,9 +31,68 @@ class ChatBottomSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildTopOption(context, Icons.camera_alt_outlined, 'Camera'),
-              _buildTopOption(context, Icons.image_outlined, 'Photos'),
-              _buildTopOption(context, Icons.attach_file, 'Files'),
+              _buildTopOption(
+                context,
+                Icons.camera_alt_outlined,
+                'Camera',
+                onTap: () async {
+                  final ImagePicker picker = ImagePicker();
+                  final XFile? image = await picker.pickImage(
+                    source: ImageSource.camera,
+                  );
+                  if (image != null && context.mounted) {
+                    AddAttachmentAction(
+                      Attachment(
+                        name: image.name,
+                        path: image.path,
+                        type: 'camera',
+                      ),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+              _buildTopOption(
+                context,
+                Icons.image_outlined,
+                'Photos',
+                onTap: () async {
+                  final ImagePicker picker = ImagePicker();
+                  final XFile? image = await picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
+                  if (image != null && context.mounted) {
+                    AddAttachmentAction(
+                      Attachment(
+                        name: image.name,
+                        path: image.path,
+                        type: 'image',
+                      ),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+              _buildTopOption(
+                context,
+                Icons.attach_file,
+                'Files',
+                onTap: () async {
+                  FilePickerResult? result = await FilePicker.platform
+                      .pickFiles();
+                  if (result != null && context.mounted) {
+                    final platformFile = result.files.first;
+                    AddAttachmentAction(
+                      Attachment(
+                        name: platformFile.name,
+                        path: platformFile.path ?? '',
+                        type: 'file',
+                      ),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -61,28 +123,36 @@ class ChatBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildTopOption(BuildContext context, IconData icon, String label) {
-    return Container(
-      width: 90,
-      height: 90,
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceLightGray.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+  Widget _buildTopOption(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 90,
+        height: 90,
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceLightGray.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
