@@ -4,8 +4,12 @@ import 'package:aporia/features/auth/presentation/pages/auth_splash_page.dart';
 
 import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
 
-void main() {
+import 'package:aporia/core/services/notification_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   initChatDataflow();
+  await NotificationService().init();
   runApp(const AporiaApp());
 }
 

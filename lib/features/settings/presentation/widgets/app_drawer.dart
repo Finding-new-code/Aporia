@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
+import 'package:aporia/core/services/notification_service.dart';
+import 'package:aporia/features/settings/presentation/pages/settings_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -107,46 +109,65 @@ class AppDrawer extends StatelessWidget {
                   _buildHistoryItem('Cynerza Investor Pitch Draft'),
                   _buildHistoryItem('Fonoster Overview'),
                   _buildHistoryItem('India HealthTech Architecture'),
-                  _buildHistoryItem('Sarvam Arya Overview'),
-                  _buildHistoryItem('Cynerza Website Analysis'),
-                  _buildHistoryItem('Google Stitch Overview'),
                   _buildHistoryItem('App Installation Conflict Fix'),
+                  _buildHistoryItem('Sarvam Arya Overview'),
+                  const Divider(color: Colors.white24),
+                  _buildDrawerItem(
+                    Icons.notifications_active_outlined,
+                    'Test Notification',
+                    onTap: () async {
+                      await NotificationService().showNotification(
+                        id: 0,
+                        title: 'Aporia Test',
+                        body: 'This is a test notification from Aporia.',
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
 
             // Bottom Profile Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: AppTheme.backgroundBlack,
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.grey.shade400,
-                    radius: 16,
-                    child: const Text(
-                      'SN',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                color: AppTheme.backgroundBlack,
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.grey.shade400,
+                      radius: 16,
+                      child: const Text(
+                        'SN',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Satya Prakash Nayak',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Satya Prakash Nayak',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const Icon(Icons.expand_more, color: Colors.white),
-                ],
+                    const Icon(Icons.expand_more, color: Colors.white),
+                  ],
+                ),
               ),
             ),
           ],
@@ -159,6 +180,7 @@ class AppDrawer extends StatelessWidget {
     IconData icon,
     String title, {
     Color color = Colors.white,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(icon, color: color, size: 24),
@@ -172,7 +194,7 @@ class AppDrawer extends StatelessWidget {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       dense: true,
-      onTap: () {},
+      onTap: onTap ?? () {},
     );
   }
 
