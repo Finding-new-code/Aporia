@@ -116,8 +116,10 @@ class AppDrawer extends StatelessWidget {
                     Icons.notifications_active_outlined,
                     'Test Notification',
                     onTap: () async {
+                      debugPrint('Triggering Test Notification...');
                       await NotificationService().showNotification(
-                        id: 0,
+                        id: (DateTime.now().millisecondsSinceEpoch % 1000000)
+                            .toInt(),
                         title: 'Aporia Test',
                         body: 'This is a test notification from Aporia.',
                       );
