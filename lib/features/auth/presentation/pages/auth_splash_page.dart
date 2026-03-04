@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/pages/home_page.dart';
+import 'package:aporia/features/auth/presentation/pages/login_page.dart';
 
 class AuthSplashPage extends StatefulWidget {
   const AuthSplashPage({super.key});
@@ -187,7 +188,14 @@ class _AuthSplashPageState extends State<AuthSplashPage>
 
                       // Log in button
                       OutlinedButton(
-                        onPressed: _skipToHome,
+                        onPressed: () {
+                          // Navigate to Login Page
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LoginPage(),
+                            ),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(
