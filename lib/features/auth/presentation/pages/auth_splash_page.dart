@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/pages/home_page.dart';
 import 'package:aporia/features/auth/presentation/pages/login_page.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:video_player/video_player.dart';
 
 class AuthSplashPage extends StatefulWidget {
   const AuthSplashPage({super.key});
@@ -12,9 +14,11 @@ class AuthSplashPage extends StatefulWidget {
 
 class _AuthSplashPageState extends State<AuthSplashPage>
     with SingleTickerProviderStateMixin {
+  late VideoPlayerController _videoController;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  bool _isVideoInitialized = false;
 
   void _skipToHome() {
     Navigator.of(
@@ -43,47 +47,47 @@ class _AuthSplashPageState extends State<AuthSplashPage>
           ),
         );
 
+    _videoController =
+        VideoPlayerController.asset(
+            'assets/videos/onboard.mp4',
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          )
+          ..initialize().then((_) {
+            setState(() {
+              _isVideoInitialized = true;
+            });
+            _videoController.play();
+          });
+
     _animationController.forward();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _videoController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Center Animation
-          Center(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Let',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 48,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.accentYellow,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
+          // Video Player
+          if (_isVideoInitialized)
+            Center(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: AspectRatio(
+                  aspectRatio: _videoController.value.aspectRatio,
+                  child: VideoPlayer(_videoController),
+                ),
               ),
-            ),
-          ),
+            )
+          else
+            const Center(child: CircularProgressIndicator()),
 
           // Skip Button
           Positioned(
@@ -133,9 +137,10 @@ class _AuthSplashPageState extends State<AuthSplashPage>
                       ElevatedButton(
                         onPressed: _skipToHome,
                         style: ElevatedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
-                          minimumSize: const Size(double.infinity, 56),
+                          minimumSize: const Size(double.infinity, 54),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
@@ -143,14 +148,18 @@ class _AuthSplashPageState extends State<AuthSplashPage>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.g_mobiledata,
-                              color: Colors.blue,
-                              size: 32,
+                            SvgPicture.asset(
+                              'assets/svg/github.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.black,
+                                BlendMode.srcIn,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Continue with Google',
+                              'Continue with Github',
                               style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
                                     color: Colors.black,
@@ -166,11 +175,12 @@ class _AuthSplashPageState extends State<AuthSplashPage>
                       ElevatedButton(
                         onPressed: _skipToHome,
                         style: ElevatedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
                           backgroundColor: const Color(
                             0xFFC4C4C4,
                           ), // Gray color
                           foregroundColor: Colors.black,
-                          minimumSize: const Size(double.infinity, 56),
+                          minimumSize: const Size(double.infinity, 54),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
@@ -197,12 +207,13 @@ class _AuthSplashPageState extends State<AuthSplashPage>
                           );
                         },
                         style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
                           foregroundColor: Colors.white,
                           side: const BorderSide(
                             color: Colors.white24,
                             width: 1,
                           ),
-                          minimumSize: const Size(double.infinity, 56),
+                          minimumSize: const Size(double.infinity, 54),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),

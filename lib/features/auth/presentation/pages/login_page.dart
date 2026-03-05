@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/pages/guest_home_page.dart';
+import 'package:aporia/features/auth/presentation/dataflows/auth_dataflow.dart';
+import 'package:flutter_svg/svg.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,16 +13,68 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  void _continueToGuestHome() {
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const GuestHomePage()));
+  bool _isPasswordStep = false;
+
+  void _handleContinue() {
+    if (!_isPasswordStep) {
+      final email = _emailController.text.trim();
+      if (email.isEmpty) {
+        setState(() => _errorMessage = 'Please enter your email.');
+        return;
+      }
+      setState(() {
+        _isPasswordStep = true;
+        _errorMessage = null;
+      });
+    } else {
+      _login();
+    }
+  }
+
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (password.isEmpty) {
+      setState(() => _errorMessage = 'Please enter your password.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final action = LoginAction(email: email, password: password);
+      await action.execute();
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const GuestHomePage()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _errorMessage = e.toString().replaceAll('Exception: ', ''),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   void dispose() {
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -28,6 +82,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundBlack,
+      extendBodyBehindAppBar: true,
+      extendBody: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -38,12 +94,33 @@ class _LoginPageState extends State<LoginPage> {
               color: AppTheme.surfaceLightGray.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            child: Icon(
+              _isPasswordStep ? Icons.arrow_back : Icons.arrow_back,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (_isPasswordStep) {
+              setState(() {
+                _isPasswordStep = false;
+                _errorMessage = null;
+              });
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
         ),
       ),
-      body: SafeArea(
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/images/space.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.4,
+            isAntiAlias: true,
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
@@ -51,30 +128,12 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               const SizedBox(height: 20),
               // Aporia Logo (Re-using the animated circle concept for the logo)
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppTheme.backgroundBlack,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.textWhite, width: 2),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.accentYellow,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
+              Image.asset('assets/images/logo.png', width: 128, height: 128),
+              // const SizedBox(height: 32),
 
               // Title "Log in or sign up"
               Text(
-                'Log in or sign up',
+                _isPasswordStep ? 'Welcome back' : 'Log in or sign up',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -84,7 +143,9 @@ class _LoginPageState extends State<LoginPage> {
 
               // Subtitle
               Text(
-                'You\'ll get smarter responses and can upload\nfiles, images and more.',
+                _isPasswordStep
+                    ? 'Enter your password to continue.'
+                    : 'You\'ll get smarter responses and can upload\nfiles, images and more.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: AppTheme.textWhite,
@@ -94,40 +155,100 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 48),
 
-              // Email Input Field
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.backgroundBlack,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.surfaceLightGray),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: TextField(
-                    controller: _emailController,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: TextStyle(
-                        color: AppTheme.textGray.withOpacity(0.8),
-                        fontSize: 14,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.1, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: !_isPasswordStep
+                    ? TextFormField(
+                        key: const ValueKey('email_field'),
+                        controller: _emailController,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Icons.email_outlined,
+                            color: AppTheme.textGray,
+                          ),
+                          labelText: 'Email',
+                          labelStyle: TextStyle(
+                            color: AppTheme.textGray.withOpacity(0.8),
+                            fontSize: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: const BorderSide(
+                              color: AppTheme.surfaceLightGray,
+                            ),
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          // contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.comfortable,
+                        ),
+                        onFieldSubmitted: (_) => _handleContinue(),
+                      )
+                    : TextFormField(
+                        key: const ValueKey('password_field'),
+                        controller: _passwordController,
+                        obscureText: true,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: AppTheme.textGray,
+                          ),
+                          labelText: 'Password',
+                          labelStyle: TextStyle(
+                            color: AppTheme.textGray.withOpacity(0.8),
+                            fontSize: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: const BorderSide(
+                              color: AppTheme.surfaceLightGray,
+                            ),
+                          ),
+                          visualDensity: VisualDensity.comfortable,
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          // contentPadding: EdgeInsets.zero,
+                        ),
+                        onFieldSubmitted: (_) => _handleContinue(),
                       ),
-                      border: InputBorder.none,
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      contentPadding: EdgeInsets.zero,
+              ),
+
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 14,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 24),
 
               // Continue Button
               ElevatedButton(
-                onPressed: _continueToGuestHome,
+                onPressed: _isLoading ? null : _handleContinue,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.textWhite,
                   foregroundColor: AppTheme.backgroundBlack,
@@ -137,14 +258,27 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: AppTheme.backgroundBlack,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        _isPasswordStep ? 'Log in' : 'Continue',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
               const SizedBox(height: 24),
 
               // OR Divider
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
@@ -174,21 +308,20 @@ class _LoginPageState extends State<LoginPage> {
 
               // Continue with Google Button
               _buildAlternativeLoginButton(
-                icon: Icons.g_mobiledata,
-                iconColor: Colors.blue,
-                label: 'Continue with Google',
-                onPressed: _continueToGuestHome,
+                svgIcon: 'assets/svg/github.svg',
+                iconColor: const Color.fromARGB(255, 245, 246, 247),
+                label: 'Continue with Github',
+                onPressed: () {}, // TODO: Implement Github login
               ),
               const SizedBox(height: 12),
 
-              // Continue with phone Button
-              _buildAlternativeLoginButton(
-                icon: Icons.phone_outlined,
-                iconColor: AppTheme.textWhite,
-                label: 'Continue with phone',
-                onPressed: _continueToGuestHome,
-              ),
-
+              // // Continue with phone Button
+              // _buildAlternativeLoginButton(
+              //   icon: Icons.phone_outlined,
+              //   iconColor: AppTheme.textWhite,
+              //   label: 'Continue with phone',
+              //   onPressed: _continueToGuestHome,
+              // ),
               const Spacer(),
 
               // Text at bottom
@@ -229,7 +362,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildAlternativeLoginButton({
-    required IconData icon,
+    required String svgIcon,
     required Color iconColor,
     required String label,
     required VoidCallback onPressed,
@@ -249,7 +382,10 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: Icon(icon, color: iconColor, size: 24),
+            child: SvgPicture.asset(
+              svgIcon,
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+            ),
           ),
           Align(
             alignment: Alignment.center,

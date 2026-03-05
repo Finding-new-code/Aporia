@@ -103,21 +103,21 @@ class ChatBottomSheet extends StatelessWidget {
             title: 'Model',
             subtitle: 'Aporia-X',
           ),
-          _buildListOption(
-            icon: Icons.brush_outlined,
-            title: 'Create image',
-            subtitle: 'Visualize anything',
-          ),
+          // _buildListOption(
+          //   icon: Icons.brush_outlined,
+          //   title: 'Create image',
+          //   subtitle: 'Visualize anything',
+          // ),
           _buildListOption(
             icon: Icons.biotech,
             title: 'Deep research',
             subtitle: 'The research tool is a tool that allows you to per...',
           ),
-          _buildListOption(
-            icon: Icons.shopping_bag_outlined,
-            title: 'Shopping research',
-            subtitle: 'Get an in-depth guide',
-          ),
+          // _buildListOption(
+          //   icon: Icons.shopping_bag_outlined,
+          //   title: 'Shopping research',
+          //   subtitle: 'Get an in-depth guide',
+          // ),
         ],
       ),
     );

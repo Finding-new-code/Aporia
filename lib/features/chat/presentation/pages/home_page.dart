@@ -36,29 +36,42 @@ class _HomePageState extends State<HomePage> {
       drawer: const AppDrawer(),
       backgroundColor: AppTheme.backgroundBlack,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(context),
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'What can I help with?',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontSize: 28, fontWeight: FontWeight.w700),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    _buildActionGrid(),
-                  ],
+        child: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/aura.png'),
+              fit: BoxFit.cover,
+              isAntiAlias: true,
+              opacity: 0.4,
+            ),
+          ),
+          child: Column(
+            children: [
+              _buildTopBar(context),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'What can I help with?',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      _buildActionGrid(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _buildAttachmentList(),
-            _buildBottomInputArea(),
-          ],
+              _buildAttachmentList(),
+              _buildBottomInputArea(),
+            ],
+          ),
         ),
       ),
     );
@@ -202,12 +215,12 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _ActionButton(
-                icon: Icons.image_outlined,
-                iconColor: Colors.greenAccent,
-                label: 'Create image',
-              ),
-              const SizedBox(width: 12),
+              // _ActionButton(
+              //   icon: Icons.image_outlined,
+              //   iconColor: Colors.greenAccent,
+              //   label: 'Create image',
+              // ),
+              // const SizedBox(width: 12),
               _ActionButton(
                 icon: Icons.bar_chart,
                 iconColor: Colors.blueAccent,
@@ -280,7 +293,7 @@ class _HomePageState extends State<HomePage> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.graphic_eq,
+                Icons.arrow_forward,
                 color: Colors.white,
                 size: 20,
               ),

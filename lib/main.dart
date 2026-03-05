@@ -4,6 +4,7 @@ import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/auth/presentation/pages/auth_splash_page.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
+import 'package:aporia/features/auth/presentation/dataflows/auth_dataflow.dart';
 
 import 'package:aporia/core/services/notification_service.dart';
 
@@ -13,6 +14,7 @@ void main() async {
   } else {
     WidgetsFlutterBinding.ensureInitialized();
   }
+  initAuthDataflow();
   initChatDataflow();
   await NotificationService().init();
   runApp(const AporiaApp());
