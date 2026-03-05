@@ -36,7 +36,7 @@ class GuestAppDrawer extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceLightGray.withOpacity(0.3),
+                      color: AppTheme.surfaceLightGray.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

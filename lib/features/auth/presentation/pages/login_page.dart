@@ -91,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceLightGray.withOpacity(0.5),
+              color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -185,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           labelText: 'Email',
                           labelStyle: TextStyle(
-                            color: AppTheme.textGray.withOpacity(0.8),
+                            color: AppTheme.textGray.withValues(alpha: 0.8),
                             fontSize: 14,
                           ),
                           border: OutlineInputBorder(
@@ -215,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           labelText: 'Password',
                           labelStyle: TextStyle(
-                            color: AppTheme.textGray.withOpacity(0.8),
+                            color: AppTheme.textGray.withValues(alpha: 0.8),
                             fontSize: 14,
                           ),
                           border: OutlineInputBorder(
@@ -283,7 +283,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Expanded(
                     child: Divider(
-                      color: AppTheme.surfaceLightGray.withOpacity(0.5),
+                      color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
                     ),
                   ),
                   Padding(
@@ -291,7 +291,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       'OR',
                       style: TextStyle(
-                        color: AppTheme.textGray.withOpacity(0.8),
+                        color: AppTheme.textGray.withValues(alpha: 0.8),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -299,7 +299,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   Expanded(
                     child: Divider(
-                      color: AppTheme.surfaceLightGray.withOpacity(0.5),
+                      color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -331,7 +331,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     'Terms of Use',
                     style: TextStyle(
-                      color: AppTheme.textGray.withOpacity(0.8),
+                      color: AppTheme.textGray.withValues(alpha: 0.8),
                       fontSize: 12,
                       decoration: TextDecoration.underline,
                     ),
@@ -339,14 +339,14 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     ' · ',
                     style: TextStyle(
-                      color: AppTheme.textGray.withOpacity(0.8),
+                      color: AppTheme.textGray.withValues(alpha: 0.8),
                       fontSize: 12,
                     ),
                   ),
                   Text(
                     'Privacy Policy',
                     style: TextStyle(
-                      color: AppTheme.textGray.withOpacity(0.8),
+                      color: AppTheme.textGray.withValues(alpha: 0.8),
                       fontSize: 12,
                       decoration: TextDecoration.underline,
                     ),
@@ -372,7 +372,7 @@ class _LoginPageState extends State<LoginPage> {
       style: OutlinedButton.styleFrom(
         foregroundColor: AppTheme.textWhite,
         side: BorderSide(
-          color: AppTheme.surfaceLightGray.withOpacity(0.8),
+          color: AppTheme.surfaceLightGray.withValues(alpha: 0.8),
           width: 1,
         ),
         minimumSize: const Size(double.infinity, 52),

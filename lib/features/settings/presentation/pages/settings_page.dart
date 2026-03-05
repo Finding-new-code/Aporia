@@ -15,7 +15,7 @@ class SettingsPage extends StatelessWidget {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceLightGray.withOpacity(0.5),
+              color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
@@ -164,9 +164,8 @@ class SettingsPage extends StatelessWidget {
   Widget _buildSectionCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceLightGray.withOpacity(
-          0.3,
-        ), // Dark grey background
+        color: AppTheme.surfaceLightGray.withValues(alpha: 0.3),
+        // Dark grey background
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(children: children),

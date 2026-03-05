@@ -26,21 +26,21 @@ class AppDrawer extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceLightGray.withOpacity(0.4),
+                        color: AppTheme.surfaceLightGray.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.search,
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Search',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 16,
                             ),
                           ),
@@ -60,23 +60,23 @@ class AppDrawer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 children: [
                   _buildDrawerItem(Icons.chat_bubble_outline, 'New chat'),
-                  _buildDrawerItem(Icons.image_outlined, 'Images'),
-                  _buildDrawerItem(Icons.grid_view_rounded, 'Apps'),
+                  // _buildDrawerItem(Icons.image_outlined, 'Library'),
+                  _buildDrawerItem(Icons.grid_view_rounded, 'Library'),
                   const SizedBox(height: 16),
                   _buildDrawerItem(
                     Icons.create_new_folder_outlined,
                     'New project',
                   ),
-                  _buildDrawerItem(
-                    Icons.psychology_alt_outlined,
-                    'Humanizer',
-                    color: Colors.purpleAccent,
-                  ),
-                  _buildDrawerItem(
-                    Icons.edit_document,
-                    'Writing',
-                    color: Colors.purpleAccent,
-                  ),
+                  // _buildDrawerItem(
+                  //   Icons.psychology_alt_outlined,
+                  //   'Humanizer',
+                  //   color: Colors.purpleAccent,
+                  // ),
+                  // _buildDrawerItem(
+                  //   Icons.edit_document,
+                  //   'Writing',
+                  //   color: Colors.purpleAccent,
+                  // ),
                   const SizedBox(height: 16),
 
                   // Projects Section Header

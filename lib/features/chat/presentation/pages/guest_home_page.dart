@@ -148,7 +148,7 @@ class _GuestHomePageState extends State<GuestHomePage> {
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceLightGray.withOpacity(0.5),
+                  color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(

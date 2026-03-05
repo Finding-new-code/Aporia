@@ -155,7 +155,7 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceLightGray.withOpacity(0.5),
+                color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.menu, color: Colors.white, size: 20),
@@ -166,7 +166,7 @@ class _HomePageState extends State<HomePage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceLightGray.withOpacity(0.5),
+              color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
@@ -183,7 +183,7 @@ class _HomePageState extends State<HomePage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceLightGray.withOpacity(0.5),
+              color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceLightGray.withOpacity(0.5),
+              color: AppTheme.surfaceLightGray.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.edit_square, color: Colors.white, size: 20),
@@ -272,7 +272,9 @@ class _HomePageState extends State<HomePage> {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Ask Aporia',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -321,7 +323,7 @@ class _ActionButton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceGray.withOpacity(0.5),
+        color: AppTheme.surfaceGray.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white12),
       ),

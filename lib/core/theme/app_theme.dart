@@ -38,8 +38,8 @@ class AppTheme {
       colorScheme: ColorScheme.dark(
         primary: textWhite,
         secondary: accentYellow,
-        background: backgroundNavy,
-        surface: surfaceGray,
+        surface: backgroundNavy,
+        surfaceContainer: surfaceGray,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

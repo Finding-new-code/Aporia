@@ -135,7 +135,7 @@ class ChatBottomSheet extends StatelessWidget {
         width: 90,
         height: 90,
         decoration: BoxDecoration(
-          color: AppTheme.surfaceLightGray.withOpacity(0.4),
+          color: AppTheme.surfaceLightGray.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
