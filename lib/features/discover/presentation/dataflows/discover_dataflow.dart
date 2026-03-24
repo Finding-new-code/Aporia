@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:aporia/core/network/api_client.dart';
 
 class DiscoverItem {
   final String title;
@@ -51,61 +52,42 @@ class DiscoverDataflow {
     _notify();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
+      final String topic = _store.selectedCategory == 'All' 
+          ? 'tech' 
+          : _store.selectedCategory.toLowerCase();
+          
+      final response = await ApiClient().get(
+        '/discover',
+        queryParameters: {'topic': topic, 'mode': 'normal'},
+      );
 
-      final allItems = [
-        DiscoverItem(
-          title: 'The Future of AI Agents in Development',
-          description:
-              'Exploring how autonomous agents are changing the software engineering landscape and what it means for developers.',
-          imageUrl:
-              'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
-          category: 'Tech',
-        ),
-        DiscoverItem(
-          title: 'Understanding Global Markets in 2026',
-          description:
-              'A comprehensive deep dive into the macroeconomic trends shaping the financial sector this year.',
-          imageUrl:
-              'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=800',
-          category: 'Finance',
-        ),
-        DiscoverItem(
-          title: 'Generative Art: A New Era of Creativity',
-          description:
-              'How artists are leveraging machine learning to create stunning, never-before-seen visual aesthetics.',
-          imageUrl:
-              'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&q=80&w=800',
-          category: 'Art',
-        ),
-        DiscoverItem(
-          title: 'Breakthroughs in Quantum Computing',
-          description:
-              'Recent advancements have pushed quantum processors past the 1,000-qubit barrier.',
-          imageUrl:
-              'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=800',
-          category: 'Science',
-        ),
-        DiscoverItem(
-          title: 'The Rise of Personalized Medicine',
-          description:
-              'Tailoring healthcare treatments to individual genetic profiles is becoming a reality.',
-          imageUrl:
-              'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800',
-          category: 'Health',
-        ),
-      ];
+      if (response.statusCode == 200) {
+        final List<dynamic> blogs = response.data['blogs'] ?? [];
+        
+        // Remove duplicates based on title and limit to 15 items for performance
+        final uniqueBlogs = <String, dynamic>{};
+        for (var blog in blogs) {
+          final title = blog['title']?.toString() ?? '';
+          if (title.isNotEmpty && !uniqueBlogs.containsKey(title)) {
+            uniqueBlogs[title] = blog;
+          }
+        }
 
-      if (_store.selectedCategory == 'All') {
-        _store.items = allItems;
+        _store.items = uniqueBlogs.values.take(15).map((item) {
+          final fallbackImage = 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800';
+          
+          return DiscoverItem(
+            title: item['title']?.toString() ?? 'No Title',
+            description: item['content']?.toString() ?? '',
+            imageUrl: item['thumbnail']?.toString() ?? item['img_src']?.toString() ?? fallbackImage,
+            category: _store.selectedCategory,
+          );
+        }).toList();
       } else {
-        _store.items = allItems
-            .where((item) => item.category == _store.selectedCategory)
-            .toList();
+        _store.error = 'Failed to load discovery items.';
       }
     } catch (e) {
-      _store.error = 'Failed to load discovery items.';
+      _store.error = 'Failed to load discovery items. Please check your connection.';
     } finally {
       _store.isLoading = false;
       _notify();

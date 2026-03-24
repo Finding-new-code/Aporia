@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:aporia/core/network/api_client.dart';
 
 class Attachment {
@@ -107,13 +109,21 @@ class ChatDataflow {
       ..._store.messages,
       {'role': 'user', 'content': message},
     ];
+    
+    // Add an empty assistant message to append to
+    final assistantIndex = _store.messages.length;
+    _store.messages = [
+      ..._store.messages,
+      {'role': 'assistant', 'content': ''},
+    ];
+    
     _store.inputText = '';
     _store.isResponding = true;
     _notify();
 
     try {
       final model = _store.selectedModel;
-      final response = await ApiClient().post(
+      final response = await ApiClient().dio.post(
         '/chat',
         data: {
           'message': {
@@ -124,6 +134,7 @@ class ChatDataflow {
           'optimizationMode': model?.type ?? 'balanced',
           'sources': [],
           'history': _store.messages
+              .sublist(0, assistantIndex) // exclude the empty assistant message
               .where((m) => m['role'] != null && m['content'] != null)
               .map((m) => [m['role'], m['content']])
               .toList(),
@@ -136,27 +147,42 @@ class ChatDataflow {
             'key': 'text-embedding-3-small',
           },
         },
+        options: Options(
+          responseType: ResponseType.stream,
+        ),
       );
 
-      if (response.statusCode == 200) {
-        _store.messages = [
-          ..._store.messages,
-          {
-            'role': 'assistant',
-            'content': 'Response received from Aporia backend.',
-          },
-        ];
-      } else {
-        _store.messages = [
-          ..._store.messages,
-          {'role': 'assistant', 'content': 'Could not reach the server.'},
-        ];
+      final stream = response.data.stream as Stream<List<int>>;
+      
+      await for (final chunk in stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (chunk.trim().isEmpty) continue;
+        
+        try {
+          final event = jsonDecode(chunk);
+          final type = event['type'];
+          
+          if (type == 'updateBlock') {
+            final patch = event['patch'] as String? ?? '';
+            final currentContent = _store.messages[assistantIndex]['content'] ?? '';
+            _store.messages[assistantIndex]['content'] = currentContent + patch;
+            _notify();
+          } else if (type == 'block') {
+             // For simplicity, we can ignore the opening block metadata 
+             // and just append incoming patch tokens.
+          } else if (type == 'messageEnd') {
+            break;
+          } else if (type == 'error') {
+             _store.messages[assistantIndex]['content'] = '${_store.messages[assistantIndex]['content']}\n\n[Error: ${event['data']}]';
+             _notify();
+             break;
+          }
+        } catch (e) {
+          // Ignore malformed chunks
+        }
       }
     } catch (e) {
-      _store.messages = [
-        ..._store.messages,
-        {'role': 'assistant', 'content': 'Error: $e'},
-      ];
+      _store.messages[assistantIndex]['content'] = 'Error: $e';
+      _notify();
     } finally {
       _store.isResponding = false;
       _notify();

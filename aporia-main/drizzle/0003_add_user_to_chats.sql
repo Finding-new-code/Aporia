@@ -1,1 +1,0 @@
-ALTER TABLE "chats" ADD COLUMN "userId" text REFERENCES "users"("id") ON DELETE CASCADE;
