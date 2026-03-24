@@ -1,49 +1,78 @@
-import 'package:dataflow/dataflow.dart';
+import 'dart:async';
 import 'package:aporia/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 
-class AuthStore extends DataStore {
+class AuthStore {
   bool isAuthenticated = false;
   String? userName;
   String? userEmail;
   String? error;
+  bool isLoading = false;
 }
 
-void initAuthDataflow() {
-  DataFlow.init<AuthStore>(AuthStore());
-}
+/// Standalone auth state manager (not using DataFlow singleton to avoid
+/// overwriting the single global store slot).
+class AuthDataflow {
+  AuthDataflow._();
 
-class LoginAction extends DataAction<AuthStore> {
-  final String email;
-  final String password;
+  static final AuthStore _store = AuthStore();
+  static AuthStore get store => _store;
 
-  LoginAction({required this.email, required this.password});
+  static final _controller = StreamController<AuthStore>.broadcast();
+  static Stream<AuthStore> get stream => _controller.stream;
 
-  @override
-  Future<void> execute() async {
+  static void _notify() => _controller.add(_store);
+
+  static Future<void> login({
+    required String email,
+    required String password,
+  }) async {
+    _store.isLoading = true;
+    _store.error = null;
+    _notify();
+
     try {
-      store.error = null;
-
       final response = await ApiClient().post(
         '/auth/login',
         data: {'email': email, 'password': password, 'rememberMe': true},
       );
 
       if (response.statusCode == 200) {
-        store.isAuthenticated = true;
-        store.userName = response.data['user']['name'];
-        store.userEmail = response.data['user']['email'];
+        _store.isAuthenticated = true;
+        _store.userName = response.data['user']['name'];
+        _store.userEmail = response.data['user']['email'];
       }
     } on DioException catch (e) {
       if (e.response != null && e.response?.data['error'] != null) {
-        store.error = e.response?.data['error'];
+        _store.error = e.response?.data['error'].toString();
       } else {
-        store.error = 'Login failed. Please check your connection.';
+        _store.error = 'Login failed. Please check your connection.';
       }
-      throw Exception(store.error);
+      rethrow;
     } catch (e) {
-      store.error = 'An unexpected error occurred.';
-      throw Exception(store.error);
+      _store.error = 'An unexpected error occurred.';
+      rethrow;
+    } finally {
+      _store.isLoading = false;
+      _notify();
     }
   }
+
+  static void logout() {
+    _store.isAuthenticated = false;
+    _store.userName = null;
+    _store.userEmail = null;
+    _store.error = null;
+    _notify();
+  }
+}
+
+// Keep a thin shim so LoginPage still compiles without changes
+class LoginAction {
+  final String email;
+  final String password;
+  LoginAction({required this.email, required this.password});
+
+  Future<void> execute() =>
+      AuthDataflow.login(email: email, password: password);
 }

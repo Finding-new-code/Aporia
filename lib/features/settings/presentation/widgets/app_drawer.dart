@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/core/services/notification_service.dart';
 import 'package:aporia/features/settings/presentation/pages/settings_page.dart';
+import 'package:aporia/features/discover/presentation/pages/discover_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -61,7 +62,18 @@ class AppDrawer extends StatelessWidget {
                 children: [
                   _buildDrawerItem(Icons.chat_bubble_outline, 'New chat'),
                   // _buildDrawerItem(Icons.image_outlined, 'Library'),
-                  _buildDrawerItem(Icons.grid_view_rounded, 'Library'),
+                  _buildDrawerItem(
+                    Icons.grid_view_rounded,
+                    'Discovery',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DiscoverPage(),
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 16),
                   _buildDrawerItem(
                     Icons.create_new_folder_outlined,

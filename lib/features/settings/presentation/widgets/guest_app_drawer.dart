@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/auth/presentation/widgets/guest_login_bottom_sheet.dart';
+import 'package:aporia/features/discover/presentation/pages/discover_page.dart';
 
 class GuestAppDrawer extends StatelessWidget {
   const GuestAppDrawer({super.key});
@@ -57,6 +58,18 @@ class GuestAppDrawer extends StatelessWidget {
                   vertical: 16,
                 ),
                 children: [
+                  _buildDrawerItem(
+                    'Discover',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DiscoverPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   _buildDrawerItem('Terms'),
                   const SizedBox(height: 16),
                   _buildDrawerItem('Privacy'),
@@ -118,15 +131,18 @@ class GuestAppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildDrawerItem(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
+  Widget _buildDrawerItem(String title, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

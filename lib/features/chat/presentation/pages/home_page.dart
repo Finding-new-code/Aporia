@@ -1,10 +1,9 @@
-import 'package:aporia/features/settings/presentation/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/widgets/chat_bottom_sheet.dart';
 import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
-import 'package:dataflow/dataflow.dart';
 import 'dart:io';
+import 'package:aporia/features/settings/presentation/widgets/app_drawer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -78,9 +77,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAttachmentList() {
-    return DataSync<ChatStore>(
-      actions: {AddAttachmentAction, RemoveAttachmentAction},
-      builder: (context, store, _) {
+    return StreamBuilder<ChatStore>(
+      stream: ChatDataflow.stream,
+      initialData: ChatDataflow.store,
+      builder: (context, snapshot) {
+        final store = snapshot.data ?? ChatDataflow.store;
         if (store.attachments.isEmpty) return const SizedBox.shrink();
         return Container(
           height: 90,
@@ -120,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                     top: -4,
                     right: -4,
                     child: GestureDetector(
-                      onTap: () => RemoveAttachmentAction(index),
+                      onTap: () => RemoveAttachmentAction(index).execute(),
                       child: Container(
                         padding: const EdgeInsets.all(2),
                         decoration: const BoxDecoration(

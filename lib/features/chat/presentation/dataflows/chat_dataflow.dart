@@ -1,4 +1,4 @@
-import 'package:dataflow/dataflow.dart';
+import 'dart:async';
 import 'package:aporia/core/network/api_client.dart';
 
 class Attachment {
@@ -32,116 +32,87 @@ class AIModel {
   }
 }
 
-class ChatStore extends DataStore {
+class ChatStore {
   String inputText = '';
   bool isBottomSheetOpen = false;
-
   List<AIModel> availableModels = [];
   AIModel? selectedModel;
-
   List<Attachment> attachments = [];
-
-  // Basic chat history and loading state
   List<Map<String, String>> messages = [];
   bool isResponding = false;
 }
 
-void initChatDataflow() {
-  DataFlow.init<ChatStore>(ChatStore());
-}
+/// Standalone chat state manager. Uses its own static store so it doesn't
+/// collide with the single DataFlow global store slot.
+class ChatDataflow {
+  ChatDataflow._();
 
-class UpdateInputAction extends DataAction<ChatStore> {
-  final String text;
+  static final ChatStore _store = ChatStore();
+  static ChatStore get store => _store;
 
-  UpdateInputAction(this.text);
+  static final _controller = StreamController<ChatStore>.broadcast();
+  static Stream<ChatStore> get stream => _controller.stream;
 
-  @override
-  dynamic execute() {
-    store.inputText = text;
+  static void _notify() => _controller.add(_store);
+
+  static void updateInput(String text) {
+    _store.inputText = text;
+    _notify();
   }
-}
 
-class ToggleBottomSheetAction extends DataAction<ChatStore> {
-  @override
-  dynamic execute() {
-    store.isBottomSheetOpen = !store.isBottomSheetOpen;
+  static void toggleBottomSheet() {
+    _store.isBottomSheetOpen = !_store.isBottomSheetOpen;
+    _notify();
   }
-}
 
-class SelectModelAction extends DataAction<ChatStore> {
-  final AIModel model;
-
-  SelectModelAction(this.model);
-
-  @override
-  dynamic execute() {
-    store.selectedModel = model;
+  static void selectModel(AIModel model) {
+    _store.selectedModel = model;
+    _notify();
   }
-}
 
-class AddAttachmentAction extends DataAction<ChatStore> {
-  final Attachment attachment;
-
-  AddAttachmentAction(this.attachment);
-
-  @override
-  dynamic execute() {
-    store.attachments = [...store.attachments, attachment];
+  static void addAttachment(Attachment attachment) {
+    _store.attachments = [..._store.attachments, attachment];
+    _notify();
   }
-}
 
-class RemoveAttachmentAction extends DataAction<ChatStore> {
-  final int index;
-
-  RemoveAttachmentAction(this.index);
-
-  @override
-  dynamic execute() {
-    final newList = List<Attachment>.from(store.attachments);
-    newList.removeAt(index);
-    store.attachments = newList;
+  static void removeAttachment(int index) {
+    final list = List<Attachment>.from(_store.attachments);
+    list.removeAt(index);
+    _store.attachments = list;
+    _notify();
   }
-}
 
-class LoadModelsAction extends DataAction<ChatStore> {
-  @override
-  Future<void> execute() async {
+  static Future<void> loadModels() async {
     try {
       final response = await ApiClient().get('/models');
       if (response.statusCode == 200) {
-        final List<dynamic> modelsJson = response.data['models'];
-        store.availableModels = modelsJson
+        final List<dynamic> modelsJson = response.data['models'] ?? [];
+        _store.availableModels = modelsJson
             .map((json) => AIModel.fromJson(json))
             .toList();
-        if (store.availableModels.isNotEmpty && store.selectedModel == null) {
-          store.selectedModel = store.availableModels.first;
+        if (_store.availableModels.isNotEmpty && _store.selectedModel == null) {
+          _store.selectedModel = _store.availableModels.first;
         }
+        _notify();
       }
     } catch (e) {
-      print('Failed to load models: $e');
+      // Silently fail — models list stays empty
     }
   }
-}
 
-class SendMessageAction extends DataAction<ChatStore> {
-  final String message;
+  static Future<void> sendMessage(String message) async {
+    if (message.trim().isEmpty) return;
 
-  SendMessageAction(this.message);
-
-  @override
-  Future<void> execute() async {
-    if (message.trim().isEmpty || store.selectedModel == null) return;
-
-    store.messages = [
-      ...store.messages,
+    _store.messages = [
+      ..._store.messages,
       {'role': 'user', 'content': message},
     ];
-    store.inputText = '';
-    store.isResponding = true;
-
-    DataFlow.notify(this);
+    _store.inputText = '';
+    _store.isResponding = true;
+    _notify();
 
     try {
+      final model = _store.selectedModel;
       final response = await ApiClient().post(
         '/chat',
         data: {
@@ -150,46 +121,89 @@ class SendMessageAction extends DataAction<ChatStore> {
             'chatId': 'default-chat-id',
             'content': message,
           },
-          'optimizationMode': store.selectedModel!.type,
+          'optimizationMode': model?.type ?? 'balanced',
           'sources': [],
-          'history': store.messages
+          'history': _store.messages
               .where((m) => m['role'] != null && m['content'] != null)
               .map((m) => [m['role'], m['content']])
               .toList(),
           'chatModel': {
-            'providerId': store.selectedModel!.provider,
-            'key': store.selectedModel!.key,
+            'providerId': model?.provider ?? 'openai',
+            'key': model?.key ?? 'gpt-4o-mini',
           },
           'embeddingModel': {
             'providerId': 'openai',
-            'key': 'text-embedding-3-small', // Default fallback mock
+            'key': 'text-embedding-3-small',
           },
         },
       );
 
-      // Simple mock parser: wait for stream/response completion and append
-      // In a real app we'd parse the SSE stream block by block using responseType: ResponseType.stream
       if (response.statusCode == 200) {
-        store.messages = [
-          ...store.messages,
+        _store.messages = [
+          ..._store.messages,
           {
             'role': 'assistant',
-            'content': 'Response received from Aporia-Main backend.',
+            'content': 'Response received from Aporia backend.',
           },
         ];
       } else {
-        store.messages = [
-          ...store.messages,
+        _store.messages = [
+          ..._store.messages,
           {'role': 'assistant', 'content': 'Could not reach the server.'},
         ];
       }
     } catch (e) {
-      store.messages = [
-        ...store.messages,
-        {'role': 'assistant', 'content': 'An error occurred: $e'},
+      _store.messages = [
+        ..._store.messages,
+        {'role': 'assistant', 'content': 'Error: $e'},
       ];
     } finally {
-      store.isResponding = false;
+      _store.isResponding = false;
+      _notify();
     }
   }
+}
+
+// ─── Thin shims so existing widgets compile without changes ──────────────────
+
+void initChatDataflow() {
+  // No-op: ChatDataflow now manages its own static state
+}
+
+class UpdateInputAction {
+  final String text;
+  UpdateInputAction(this.text);
+  void execute() => ChatDataflow.updateInput(text);
+}
+
+class ToggleBottomSheetAction {
+  void execute() => ChatDataflow.toggleBottomSheet();
+}
+
+class SelectModelAction {
+  final AIModel model;
+  SelectModelAction(this.model);
+  void execute() => ChatDataflow.selectModel(model);
+}
+
+class AddAttachmentAction {
+  final Attachment attachment;
+  AddAttachmentAction(this.attachment);
+  void execute() => ChatDataflow.addAttachment(attachment);
+}
+
+class RemoveAttachmentAction {
+  final int index;
+  RemoveAttachmentAction(this.index);
+  void execute() => ChatDataflow.removeAttachment(index);
+}
+
+class LoadModelsAction {
+  Future<void> execute() => ChatDataflow.loadModels();
+}
+
+class SendMessageAction {
+  final String message;
+  SendMessageAction(this.message);
+  Future<void> execute() => ChatDataflow.sendMessage(message);
 }
