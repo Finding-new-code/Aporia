@@ -3,6 +3,7 @@ import 'package:aporia/core/theme/app_theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
+import 'package:aporia/features/chat/presentation/widgets/model_selection_sheet.dart';
 
 class ChatBottomSheet extends StatelessWidget {
   const ChatBottomSheet({super.key});
@@ -98,10 +99,28 @@ class ChatBottomSheet extends StatelessWidget {
           const SizedBox(height: 24),
 
           // List Options
-          _buildListOption(
-            icon: Icons.all_inclusive,
-            title: 'Model',
-            subtitle: 'Aporia-X',
+          StreamBuilder<ChatStore>(
+            stream: ChatDataflow.stream,
+            initialData: ChatDataflow.store,
+            builder: (context, snapshot) {
+              final store = snapshot.data ?? ChatDataflow.store;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pop(context); // Close the tool sheet
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    isScrollControlled: true,
+                    builder: (context) => const ModelSelectionSheet(),
+                  );
+                },
+                child: _buildListOption(
+                  icon: Icons.all_inclusive,
+                  title: 'Model',
+                  subtitle: store.selectedModel?.name ?? 'Aporia-X',
+                ),
+              );
+            },
           ),
           // _buildListOption(
           //   icon: Icons.brush_outlined,

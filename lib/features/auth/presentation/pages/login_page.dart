@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/pages/guest_home_page.dart';
 import 'package:aporia/features/auth/presentation/dataflows/auth_dataflow.dart';
+import 'package:aporia/features/auth/presentation/pages/signup_page.dart';
+import 'package:aporia/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:flutter_svg/svg.dart';
 
 class LoginPage extends StatefulWidget {
@@ -244,7 +246,36 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-              const SizedBox(height: 24),
+              if (_isPasswordStep) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ForgotPasswordPage(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.textWhite,
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        fontSize: 14,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ] else ...[
+                const SizedBox(height: 24),
+              ],
 
               // Continue Button
               ElevatedButton(
@@ -322,6 +353,37 @@ class _LoginPageState extends State<LoginPage> {
               //   label: 'Continue with phone',
               //   onPressed: _continueToGuestHome,
               // ),
+              // Signup link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Don\'t have an account?',
+                    style: TextStyle(
+                      color: AppTheme.textWhite.withValues(alpha: 0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SignupPage(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Sign up',
+                      style: TextStyle(
+                        color: AppTheme.textWhite,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const Spacer(),
 
               // Text at bottom

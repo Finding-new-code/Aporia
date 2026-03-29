@@ -3,6 +3,9 @@ import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/auth/presentation/pages/login_page.dart';
 import 'package:aporia/features/settings/presentation/widgets/guest_app_drawer.dart';
 import 'package:aporia/features/chat/presentation/widgets/attachment_bottom_sheet.dart';
+import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
+import 'package:aporia/features/chat/presentation/widgets/user_message_bubble.dart';
+import 'package:aporia/features/chat/presentation/widgets/ai_message_block.dart';
 
 class GuestHomePage extends StatefulWidget {
   const GuestHomePage({super.key});
@@ -84,9 +87,32 @@ class _GuestHomePageState extends State<GuestHomePage> {
         child: Column(
           children: [
             Expanded(
-              child: Center(
-                // This space is empty in the guest view initially, you could add logo or message here if wanted, but screenshot 3 shows it empty
-                child: Container(),
+              child: StreamBuilder<ChatStore>(
+                stream: ChatDataflow.stream,
+                initialData: ChatDataflow.store,
+                builder: (context, snapshot) {
+                  final store = snapshot.data ?? ChatDataflow.store;
+                  if (store.messages.isEmpty) {
+                    return Center(child: Container());
+                  }
+                  
+                  return ListView.builder(
+                    padding: const EdgeInsets.only(top: 16, bottom: 24),
+                    itemCount: store.messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = store.messages[index];
+                      if (msg.role == 'user') {
+                        return UserMessageBubble(content: msg.content);
+                      } else {
+                        return AiMessageBlock(
+                          content: msg.content,
+                          isThinking: msg.isThinking,
+                          statusText: msg.statusText,
+                        );
+                      }
+                    },
+                  );
+                },
               ),
             ),
 
@@ -167,6 +193,12 @@ class _GuestHomePageState extends State<GuestHomePage> {
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
+                        onSubmitted: (text) {
+                          if (text.trim().isNotEmpty) {
+                            SendMessageAction(text.trim()).execute();
+                            _inputController.clear();
+                          }
+                        },
                       ),
                     ),
                     IconButton(
@@ -185,7 +217,13 @@ class _GuestHomePageState extends State<GuestHomePage> {
                           color: Colors.white,
                           size: 20,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          final text = _inputController.text;
+                          if (text.trim().isNotEmpty) {
+                            SendMessageAction(text.trim()).execute();
+                            _inputController.clear();
+                          }
+                        },
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.all(8),
                       ),

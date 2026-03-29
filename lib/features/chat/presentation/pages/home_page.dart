@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/features/chat/presentation/widgets/chat_bottom_sheet.dart';
 import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
+import 'package:aporia/features/chat/presentation/widgets/user_message_bubble.dart';
+import 'package:aporia/features/chat/presentation/widgets/ai_message_block.dart';
 import 'dart:io';
 import 'package:aporia/features/settings/presentation/widgets/app_drawer.dart';
 
@@ -14,6 +16,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController _inputController = TextEditingController();
+
+  @override
+  void dispose() {
+    _inputController.dispose();
+    super.dispose();
+  }
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openDrawer();
@@ -48,23 +57,49 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildTopBar(context),
               Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'What can I help with?',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
+                child: StreamBuilder<ChatStore>(
+                  stream: ChatDataflow.stream,
+                  initialData: ChatDataflow.store,
+                  builder: (context, snapshot) {
+                    final store = snapshot.data ?? ChatDataflow.store;
+                    if (store.messages.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'What can I help with?',
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                              textAlign: TextAlign.center,
                             ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                      _buildActionGrid(),
-                    ],
-                  ),
+                            const SizedBox(height: 32),
+                            _buildActionGrid(),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.only(top: 16, bottom: 24),
+                      itemCount: store.messages.length,
+                      itemBuilder: (context, index) {
+                        final msg = store.messages[index];
+                        if (msg.role == 'user') {
+                          return UserMessageBubble(content: msg.content);
+                        } else {
+                          return AiMessageBlock(
+                            content: msg.content,
+                            isThinking: msg.isThinking,
+                            statusText: msg.statusText,
+                          );
+                        }
+                      },
+                    );
+                  },
                 ),
               ),
               _buildAttachmentList(),
@@ -270,6 +305,7 @@ class _HomePageState extends State<HomePage> {
             // Input Field
             Expanded(
               child: TextField(
+                controller: _inputController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Ask Aporia',
@@ -280,6 +316,12 @@ class _HomePageState extends State<HomePage> {
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
+                onSubmitted: (text) {
+                  if (text.trim().isNotEmpty) {
+                    SendMessageAction(text.trim()).execute();
+                    _inputController.clear();
+                  }
+                },
               ),
             ),
             // Mic Button
@@ -288,17 +330,26 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {},
             ),
             // Waveform Button
-            Container(
-              margin: const EdgeInsets.only(right: 4),
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Colors.blueAccent,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_forward,
-                color: Colors.white,
-                size: 20,
+            GestureDetector(
+              onTap: () {
+                final text = _inputController.text;
+                if (text.trim().isNotEmpty) {
+                  SendMessageAction(text.trim()).execute();
+                  _inputController.clear();
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Colors.blueAccent,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ],

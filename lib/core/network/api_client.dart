@@ -63,9 +63,66 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     try {
-      return await dio.post(path, data: data, queryParameters: queryParameters);
+      return await dio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> put(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      return await dio.put(path, data: data, queryParameters: queryParameters);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> delete(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      return await dio.delete(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Uploads a file using multipart/form-data.
+  /// [filePath] is the local system path, [fieldName] is the form field name.
+  Future<Response> uploadFile(
+    String path,
+    String filePath, {
+    String fieldName = 'file',
+    Map<String, dynamic>? extraFields,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        fieldName: await MultipartFile.fromFile(filePath),
+        ...?extraFields,
+      });
+      return await dio.post(
+        path,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
     } catch (e) {
       rethrow;
     }

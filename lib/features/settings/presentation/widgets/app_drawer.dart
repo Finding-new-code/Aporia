@@ -3,9 +3,22 @@ import 'package:aporia/core/theme/app_theme.dart';
 import 'package:aporia/core/services/notification_service.dart';
 import 'package:aporia/features/settings/presentation/pages/settings_page.dart';
 import 'package:aporia/features/discover/presentation/pages/discover_page.dart';
+import 'package:aporia/features/chat/presentation/dataflows/chat_dataflow.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  @override
+  void initState() {
+    super.initState();
+    // Load chats when drawer is opened
+    LoadChatsAction().execute();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +73,10 @@ class AppDrawer extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 children: [
-                  _buildDrawerItem(Icons.chat_bubble_outline, 'New chat'),
+                  _buildDrawerItem(Icons.chat_bubble_outline, 'New chat', onTap: () {
+                    ResetChatAction().execute();
+                    Navigator.pop(context); // Close the drawer safely
+                  }),
                   // _buildDrawerItem(Icons.image_outlined, 'Library'),
                   _buildDrawerItem(
                     Icons.grid_view_rounded,
@@ -118,11 +134,49 @@ class AppDrawer extends StatelessWidget {
                   ),
 
                   // History Items
-                  _buildHistoryItem('Cynerza Investor Pitch Draft'),
-                  _buildHistoryItem('Fonoster Overview'),
-                  _buildHistoryItem('India HealthTech Architecture'),
-                  _buildHistoryItem('App Installation Conflict Fix'),
-                  _buildHistoryItem('Sarvam Arya Overview'),
+                  StreamBuilder<ChatStore>(
+                    stream: ChatDataflow.stream,
+                    initialData: ChatDataflow.store,
+                    builder: (context, snapshot) {
+                      final store = snapshot.data ?? ChatDataflow.store;
+
+                      if (store.isHistoryLoading) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          ),
+                        );
+                      }
+
+                      if (store.chatHistory.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                          child: Text(
+                            'No recent projects.',
+                            style: TextStyle(color: Colors.white54, fontSize: 13),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: store.chatHistory.map((session) {
+                          return _buildHistoryItem(
+                            session.title,
+                            onTap: () {
+                              LoadChatAction(session.id).execute();
+                              Navigator.pop(context);
+                            },
+                            onDelete: () {
+                              DeleteChatAction(session.id).execute();
+                            },
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  
                   const Divider(color: Colors.white24),
                   _buildDrawerItem(
                     Icons.notifications_active_outlined,
@@ -212,14 +266,30 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Text(
-        title,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+  Widget _buildHistoryItem(String title, {VoidCallback? onTap, VoidCallback? onDelete}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (onDelete != null)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.white54, size: 20),
+                onPressed: onDelete,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
+        ),
       ),
     );
   }

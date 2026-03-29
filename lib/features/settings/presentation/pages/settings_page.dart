@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aporia/core/theme/app_theme.dart';
+import 'package:aporia/features/auth/presentation/dataflows/auth_dataflow.dart';
+import 'package:aporia/features/chat/presentation/pages/guest_home_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -135,6 +137,27 @@ class SettingsPage extends StatelessWidget {
                   subtitle: '+917325834880',
                 ),
               ]),
+              
+              const SizedBox(height: 24),
+              TextButton(
+                onPressed: () async {
+                  await LogoutAction().execute();
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const GuestHomePage()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
+                },
+                child: const Text(
+                  'Log out',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
 
               const SizedBox(height: 40),
             ],
